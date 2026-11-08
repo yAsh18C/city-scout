@@ -31,9 +31,18 @@ st.markdown("""
 .block-container { padding-top: 1.5rem !important; }
 
 /* ── Sidebar ── */
-[data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #0d1526 0%, #0a1020 100%);
-    border-right: 1px solid #1a2744;
+[data-testid="stSidebar"],
+section[data-testid="stSidebar"] {
+    display: block !important;
+    visibility: visible !important;
+    background: linear-gradient(180deg, #0d1526 0%, #0a1020 100%) !important;
+    border-right: 1px solid #1a2744 !important;
+    min-width: 240px !important;
+}
+[data-testid="stSidebarContent"],
+[data-testid="stSidebarUserContent"] {
+    display: block !important;
+    visibility: visible !important;
 }
 [data-testid="stSidebar"] label { color: #8b9bb4 !important; font-size: 0.78rem !important; font-weight: 500 !important; letter-spacing: 0.3px; }
 [data-testid="stSidebar"] .stSelectbox > div > div { background: #111c35 !important; border: 1px solid #1e3060 !important; border-radius: 8px !important; color: #e0e8f4 !important; }
