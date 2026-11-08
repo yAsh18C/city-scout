@@ -283,7 +283,8 @@ st.markdown("""
 /* Hide streamlit default elements */
 #MainMenu { visibility: hidden; }
 footer { visibility: hidden; }
-header { visibility: hidden; }
+[data-testid="stHeader"] { visibility: hidden; }
+[data-testid="collapsedControl"] { visibility: visible !important; }
 </style>
 """, unsafe_allow_html=True)
 
