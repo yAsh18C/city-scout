@@ -34,38 +34,53 @@ st.markdown("""
 [data-testid="stSidebar"] { display: none !important; }
 [data-testid="collapsedControl"] { display: none !important; }
 
-/* ── Top control bar ── */
-.control-bar {
+/* ── Top control bar: style the first columns row as a unified card ── */
+[data-testid="stHorizontalBlock"]:first-of-type {
     background: #0d1526;
     border: 1px solid #1a2744;
     border-radius: 12px;
-    padding: 14px 20px;
-    margin-bottom: 18px;
-    display: flex;
-    align-items: center;
-    gap: 24px;
+    padding: 8px 20px 14px;
+    gap: 20px;
+    align-items: flex-start;
+    margin-bottom: 16px;
 }
-.control-bar-brand {
-    font-size: 1.1rem;
+.top-brand {
+    padding-top: 26px;
+}
+.top-brand-name {
+    font-size: 1.05rem;
     font-weight: 800;
     color: #6cabdd;
     letter-spacing: 2px;
     text-transform: uppercase;
-    white-space: nowrap;
-    padding-right: 20px;
-    border-right: 1px solid #1a2744;
 }
-.control-bar-auc {
-    font-size: 0.72rem;
+.top-brand-sub {
+    font-size: 0.63rem;
+    color: #2a3d6e;
+    margin-top: 2px;
+    letter-spacing: 0.4px;
+}
+.top-auc {
+    padding-top: 22px;
+    text-align: right;
+}
+.top-auc-label {
+    font-size: 0.63rem;
     color: #4a7ab5;
-    white-space: nowrap;
-    margin-left: auto;
-    padding-left: 20px;
-    border-left: 1px solid #1a2744;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-weight: 600;
 }
-.control-bar-auc span {
+.top-auc-value {
+    font-size: 1.15rem;
+    font-weight: 800;
     color: #6cabdd;
-    font-weight: 700;
+    line-height: 1.1;
+}
+.top-auc-sub {
+    font-size: 0.62rem;
+    color: #2a3d6e;
+    margin-top: 2px;
 }
 
 /* ── Hero player banner ── */
@@ -299,39 +314,56 @@ def load_all_data():
 
 feat_df, meta_df, heat_df, emb, metrics = load_all_data()
 
-# ── Top control bar ───────────────────────────────────────────────────────────
-st.markdown(
-    f"<div class='control-bar'>"
-    f"<div class='control-bar-brand'>🔵 City Scout</div>"
-    f"<div class='control-bar-auc'>Action Value ROC-AUC &nbsp;<span>{metrics['action_value_roc_auc']}</span>"
-    f"&nbsp;·&nbsp; 1.26M events &nbsp;·&nbsp; 611 players</div>"
-    f"</div>",
-    unsafe_allow_html=True,
-)
+# ── Top control bar (single unified row) ──────────────────────────────────────
+# Pre-compute pools for cascading filters before column layout
+competitions = ["All"] + sorted(meta_df["competition"].unique().tolist())
 
-ctrl1, ctrl2, ctrl3 = st.columns([1, 1, 1.5])
+col_brand, col_comp, col_team, col_player, col_auc = st.columns([1, 1, 1, 1.6, 1])
 
-with ctrl1:
-    competitions = ["All"] + sorted(meta_df["competition"].unique().tolist())
-    selected_comp = st.selectbox("Competition", competitions, label_visibility="visible")
+with col_brand:
+    st.markdown(
+        "<div class='top-brand'>"
+        "<div class='top-brand-name'>🔵 City Scout</div>"
+        "<div class='top-brand-sub'>StatsBomb Open Data</div>"
+        "</div>",
+        unsafe_allow_html=True,
+    )
+
+with col_comp:
+    selected_comp = st.selectbox("Competition", competitions)
 
 if selected_comp == "All":
     pool = meta_df
 else:
     pool = meta_df[meta_df["competition"] == selected_comp]
 
-with ctrl2:
+with col_team:
     teams = ["All Teams"] + sorted(pool["team"].unique().tolist())
     selected_team = st.selectbox("Team", teams)
+
 if selected_team != "All Teams":
     pool = pool[pool["team"] == selected_team]
 
-with ctrl3:
+with col_player:
     player_names = sorted(pool.index.tolist())
-    default_idx = player_names.index("Kevin De Bruyne") if "Kevin De Bruyne" in player_names else 0
+    # Default to highest City Fit non-City player: more interesting first impression
+    non_city_pool = pool[pool["team"] != "Manchester City"]
+    if len(non_city_pool) > 0:
+        best_default = non_city_pool["city_fit"].idxmax()
+        default_idx = player_names.index(best_default) if best_default in player_names else 0
+    else:
+        default_idx = 0
     selected_player = st.selectbox("Select Player", player_names, index=default_idx)
 
-st.markdown("<div style='margin-bottom:8px;'></div>", unsafe_allow_html=True)
+with col_auc:
+    st.markdown(
+        f"<div class='top-auc'>"
+        f"<div class='top-auc-label'>Action Value AUC</div>"
+        f"<div class='top-auc-value'>{metrics['action_value_roc_auc']}</div>"
+        f"<div class='top-auc-sub'>1.26M events · 611 players</div>"
+        f"</div>",
+        unsafe_allow_html=True,
+    )
 
 # ── Player header ─────────────────────────────────────────────────────────────
 player_meta = meta_df.loc[selected_player]
