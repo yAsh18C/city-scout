@@ -33,6 +33,17 @@ st.markdown("""
 
 /* ── Sidebar ── */
 [data-testid="stSidebar"] { border-right: 1px solid #1a2744; }
+/* Hide broken collapse button inside sidebar */
+[data-testid="stSidebarCollapseButton"] { display: none !important; }
+/* Make expand button visible if sidebar gets collapsed */
+[data-testid="collapsedControl"] {
+    display: flex !important;
+    visibility: visible !important;
+    background: #1a2744 !important;
+    border-radius: 0 8px 8px 0 !important;
+    padding: 8px 6px !important;
+    color: #6cabdd !important;
+}
 
 /* ── Sidebar logo ── */
 .sidebar-logo {
