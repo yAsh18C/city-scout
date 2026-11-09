@@ -18,54 +18,54 @@ st.set_page_config(
     page_title="City Scout",
     page_icon="🔵",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 # ── Custom CSS ────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&display=swap');
 /* ── Global ── */
 * { font-family: 'Inter', sans-serif !important; }
 .stApp { background-color: #080c14; color: #f0f4f8; }
-.block-container { padding-top: 1.5rem !important; }
+.block-container { padding-top: 1rem !important; }
 
-/* ── Sidebar ── */
-[data-testid="stSidebar"] { border-right: 1px solid #1a2744; }
-/* Hide broken collapse button inside sidebar */
-[data-testid="stSidebarCollapseButton"] { display: none !important; }
-/* Make expand button visible if sidebar gets collapsed */
-[data-testid="collapsedControl"] {
-    display: flex !important;
-    visibility: visible !important;
-    background: #1a2744 !important;
-    border-radius: 0 8px 8px 0 !important;
-    padding: 8px 6px !important;
-    color: #6cabdd !important;
-}
+/* ── Hide sidebar entirely ── */
+[data-testid="stSidebar"] { display: none !important; }
+[data-testid="collapsedControl"] { display: none !important; }
 
-/* ── Sidebar logo ── */
-.sidebar-logo {
-    background: linear-gradient(135deg, #1c3f6e 0%, #0d1f42 100%);
+/* ── Top control bar ── */
+.control-bar {
+    background: #0d1526;
+    border: 1px solid #1a2744;
     border-radius: 12px;
-    padding: 14px 16px;
-    margin-bottom: 16px;
-    border: 1px solid #2a4d8a;
-    text-align: center;
+    padding: 14px 20px;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
 }
-.sidebar-logo-title {
-    font-size: 1.25rem;
+.control-bar-brand {
+    font-size: 1.1rem;
     font-weight: 800;
     color: #6cabdd;
     letter-spacing: 2px;
     text-transform: uppercase;
+    white-space: nowrap;
+    padding-right: 20px;
+    border-right: 1px solid #1a2744;
 }
-.sidebar-logo-sub {
-    font-size: 0.68rem;
+.control-bar-auc {
+    font-size: 0.72rem;
     color: #4a7ab5;
-    letter-spacing: 0.5px;
-    margin-top: 2px;
+    white-space: nowrap;
+    margin-left: auto;
+    padding-left: 20px;
+    border-left: 1px solid #1a2744;
+}
+.control-bar-auc span {
+    color: #6cabdd;
+    font-weight: 700;
 }
 
 /* ── Hero player banner ── */
@@ -253,20 +253,6 @@ st.markdown("""
 .stat-label { color: #4a7ab5; font-size: 0.82rem; }
 .stat-val   { color: #e8eef8; font-weight: 700; font-size: 0.85rem; }
 
-/* ── Sidebar model info box ── */
-.model-box {
-    background: #0d1526;
-    border: 1px solid #1a2744;
-    border-radius: 8px;
-    padding: 10px 12px;
-    margin-top: 4px;
-}
-.model-auc {
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: #6cabdd;
-    line-height: 1;
-}
 
 /* ── Chart containers ── */
 .chart-box {
@@ -313,61 +299,39 @@ def load_all_data():
 
 feat_df, meta_df, heat_df, emb, metrics = load_all_data()
 
-# ── Sidebar ───────────────────────────────────────────────────────────────────
-with st.sidebar:
-    st.markdown(
-        "<div class='sidebar-logo'>"
-        "<div class='sidebar-logo-title'>City Scout</div>"
-        "<div class='sidebar-logo-sub'>Football Player Intelligence · StatsBomb Open Data</div>"
-        "</div>",
-        unsafe_allow_html=True,
-    )
+# ── Top control bar ───────────────────────────────────────────────────────────
+st.markdown(
+    f"<div class='control-bar'>"
+    f"<div class='control-bar-brand'>🔵 City Scout</div>"
+    f"<div class='control-bar-auc'>Action Value ROC-AUC &nbsp;<span>{metrics['action_value_roc_auc']}</span>"
+    f"&nbsp;·&nbsp; 1.26M events &nbsp;·&nbsp; 611 players</div>"
+    f"</div>",
+    unsafe_allow_html=True,
+)
 
-    # Competition filter
+ctrl1, ctrl2, ctrl3 = st.columns([1, 1, 1.5])
+
+with ctrl1:
     competitions = ["All"] + sorted(meta_df["competition"].unique().tolist())
-    selected_comp = st.selectbox("Competition", competitions)
+    selected_comp = st.selectbox("Competition", competitions, label_visibility="visible")
 
-    if selected_comp == "All":
-        pool = meta_df
-    else:
-        pool = meta_df[meta_df["competition"] == selected_comp]
+if selected_comp == "All":
+    pool = meta_df
+else:
+    pool = meta_df[meta_df["competition"] == selected_comp]
 
-    # Team filter
+with ctrl2:
     teams = ["All Teams"] + sorted(pool["team"].unique().tolist())
     selected_team = st.selectbox("Team", teams)
-    if selected_team != "All Teams":
-        pool = pool[pool["team"] == selected_team]
+if selected_team != "All Teams":
+    pool = pool[pool["team"] == selected_team]
 
-    # Player search
+with ctrl3:
     player_names = sorted(pool.index.tolist())
-    # Default to Kevin De Bruyne if available
     default_idx = player_names.index("Kevin De Bruyne") if "Kevin De Bruyne" in player_names else 0
-    selected_player = st.selectbox(
-        "Select Player",
-        player_names,
-        index=default_idx,
-    )
+    selected_player = st.selectbox("Select Player", player_names, index=default_idx)
 
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("<div class='section-title'>Model Performance</div>", unsafe_allow_html=True)
-    st.markdown(
-        f"<div class='model-box'>"
-        f"<div style='color:#4a7ab5;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.8px;font-weight:600;'>Action Value ROC-AUC</div>"
-        f"<div class='model-auc'>{metrics['action_value_roc_auc']}</div>"
-        f"<div style='color:#4a7ab5;font-size:0.72rem;margin-top:6px;line-height:1.5;'>"
-        f"Logistic regression · 1.26M events · P(shot within 5 events)</div>"
-        f"</div>",
-        unsafe_allow_html=True,
-    )
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown(
-        "<div style='color:#2a3d6e;font-size:0.68rem;line-height:1.6;'>"
-        "Data: StatsBomb Open Data<br>"
-        "611 players · 450+ min filter<br>"
-        "PL 15/16 · LaLiga 19/20 · WC 2022 · Euro 2020"
-        "</div>",
-        unsafe_allow_html=True,
-    )
+st.markdown("<div style='margin-bottom:8px;'></div>", unsafe_allow_html=True)
 
 # ── Player header ─────────────────────────────────────────────────────────────
 player_meta = meta_df.loc[selected_player]
