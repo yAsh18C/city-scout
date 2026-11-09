@@ -25,6 +25,7 @@ st.set_page_config(
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&display=swap');
 /* ── Global ── */
 * { font-family: 'Inter', sans-serif !important; }
 .stApp { background-color: #080c14; color: #f0f4f8; }
